@@ -91,6 +91,13 @@
             transform: translateY(-2px); /* 稍微抬起的效果 */
             box-shadow: 0 6px 12px rgba(255, 140, 0, 0.3); /* 更大的陰影 */
         }
+        /* 禁用按鈕樣式 (如果需要，雖然離線模式預設啟用) */
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
         .reminder-item {
             background-color: #FFFFFF; /* 提醒事項背景：白色 */
             border: 1px solid #E5E5E5; /* 淺灰色邊框 */
@@ -284,14 +291,8 @@
             color: white; /* 確保按鈕文字可見 */
         }
         .user-id-display {
-            font-size: 0.8em;
-            color: #7A7A7A; /* 用戶 ID 顯示為中灰 */
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #F5EFE3; /* 用戶 ID 背景使用淺米色 */
-            border-radius: 8px;
-            word-break: break-all; /* Allow breaking long user IDs */
+            /* 在離線模式下，這個區塊將被移除，因此其樣式不再需要 */
+            display: none;
         }
         /* 針對頁面主要標題和子標題 */
         .text-gray-800 {
@@ -373,9 +374,10 @@
             </div>
         </div>
 
-        <div class="user-id-display">
+        <!-- 用戶 ID 顯示區塊，在離線模式下已移除 -->
+        <!-- <div class="user-id-display">
             <p>你的用戶 ID: <span id="currentUserId">載入中...</span></p>
-        </div>
+        </div> -->
     </div>
 
     <!-- Notification Modal -->
@@ -387,18 +389,9 @@
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global variables for Firebase and user
-        let app;
-        let db;
-        let auth;
-        let userId;
-        let reminders = []; // Array to store reminder objects
+        // 全域變數，儲存提醒事項
+        let reminders = [];
         const scheduledTimeouts = new Map(); // Map to store timeout IDs for clearing
 
         // DOM element references
@@ -415,13 +408,54 @@
         const notificationModal = document.getElementById('notificationModal');
         const notificationMessage = document.getElementById('notificationMessage');
         const closeNotificationBtn = document.getElementById('closeNotificationBtn');
-        const currentUserIdSpan = document.getElementById('currentUserId');
+
+        // Local Storage Key
+        const LOCAL_STORAGE_KEY = 'myRemindersApp';
+
+        /**
+         * 將提醒事項儲存到瀏覽器的 localStorage
+         */
+        function saveRemindersToLocalStorage() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reminders));
+                console.log("Reminders saved to local storage.");
+            } catch (e) {
+                console.error("Error saving reminders to local storage:", e);
+                showCustomModal("儲存提醒失敗！您的瀏覽器儲存空間可能不足或設定有問題。");
+            }
+        }
+
+        /**
+         * 從瀏覽器的 localStorage 載入提醒事項
+         */
+        function loadRemindersFromLocalStorage() {
+            try {
+                const storedReminders = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (storedReminders) {
+                    reminders = JSON.parse(storedReminders);
+                    // 確保載入的提醒事項是有效的，並且重新排程
+                    reminders = reminders.filter(r => r && r.id && r.event && r.timestamp);
+                    reminders.sort((a, b) => a.timestamp - b.timestamp); // 重新排序
+                    console.log("Reminders loaded from local storage:", reminders);
+                } else {
+                    reminders = [];
+                    console.log("No reminders found in local storage.");
+                }
+                renderReminders();
+                reminders.forEach(scheduleReminder); // 載入後重新排程所有提醒
+            } catch (e) {
+                console.error("Error loading reminders from local storage:", e);
+                showCustomModal("載入提醒失敗！您的瀏覽器儲存空間可能已損壞。");
+                reminders = []; // 清空提醒，避免顯示錯誤資料
+                renderReminders();
+            }
+        }
 
         // Function to set the current date and time in the input fields
         function setInitialDateTime() {
             const now = new Date();
 
-            // Format date to YYYY-MM-DD
+            // Format date toപ്പെടെ-MM-DD
             const year = now.getFullYear();
             const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
             const day = now.getDate().toString().padStart(2, '0');
@@ -442,74 +476,6 @@
                 // Uncheck all custom day checkboxes when not in custom mode
                 customDayCheckboxes.forEach(checkbox => checkbox.checked = false);
             }
-        }
-
-        // Initialize Firebase and set up authentication
-        async function initializeFirebase() {
-            try {
-                // Get app ID and Firebase config from global variables
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-
-                // Initialize Firebase app
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-
-                // Sign in the user
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // Listen for auth state changes
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        currentUserIdSpan.textContent = userId;
-                        console.log("Firebase initialized. User ID:", userId);
-                        setupFirestoreListener(); // Start listening for reminders once authenticated
-                    } else {
-                        // If user is signed out, create a random ID. This should ideally not happen if signInAnonymously succeeds.
-                        userId = crypto.randomUUID();
-                        currentUserIdSpan.textContent = `匿名用戶 (${userId})`;
-                        console.log("Firebase initialized. Anonymous User ID:", userId);
-                        setupFirestoreListener(); // Still try to load data, though it might be empty
-                    }
-                });
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                // Display an error message to the user if Firebase initialization fails
-                currentUserIdSpan.textContent = `載入失敗 (${error.message})`;
-            }
-        }
-
-        // Set up real-time listener for reminders from Firestore
-        function setupFirestoreListener() {
-            if (!userId) {
-                console.warn("User ID not available yet for Firestore listener.");
-                return;
-            }
-            const remindersCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/reminders`);
-            // Use onSnapshot to listen for real-time updates
-            onSnapshot(remindersCollectionRef, (snapshot) => {
-                const newReminders = [];
-                snapshot.forEach((doc) => {
-                    newReminders.push({ id: doc.id, ...doc.data() });
-                });
-
-                // Clear all previously scheduled timeouts
-                scheduledTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
-                scheduledTimeouts.clear();
-
-                // Sort reminders by timestamp
-                reminders = newReminders.sort((a, b) => a.timestamp - b.timestamp);
-                renderReminders();
-                reminders.forEach(scheduleReminder); // Reschedule all reminders
-            }, (error) => {
-                console.error("Error fetching reminders:", error);
-            });
         }
 
         /**
@@ -537,6 +503,7 @@
 
             for (let i = 0; i < maxSearchDays; i++) {
                 // If it's not the first iteration, advance by one day.
+                // This ensures we always check the current candidateDate *before* advancing for the next iteration.
                 if (i > 0) {
                      candidateDate.setDate(candidateDate.getDate() + 1);
                 }
@@ -555,19 +522,14 @@
                         isValidDayForRepeatType = (dayOfWeek === 0 || dayOfWeek === 6); // Sunday or Saturday
                         break;
                     case 'custom':
-                        isValidDayForRepeatType = reminder.customRepeatDays.includes(dayOfWeek);
+                        isValidDayForRepeatType = reminder.customRepeatDays && reminder.customRepeatDays.length > 0 && reminder.customRepeatDays.includes(dayOfWeek);
                         break;
                     case 'once':
                         // This function is primarily for repeating reminders.
                         // For 'once', if its original timestamp is already past 'now', there's no 'next' occurrence.
                         // If it's still in the future, its own timestamp is the 'next' occurrence.
                         // So we only return it if it's strictly in the future relative to the point this function is called.
-                        if (reminder.timestamp > now.getTime()) { // Re-check original timestamp here
-                            isValidDayForRepeatType = true;
-                        } else {
-                            return null; // One-time reminder is past, no next occurrence.
-                        }
-                        break;
+                        return null;
                     default:
                         // Should not happen for valid repeat types
                         return null;
@@ -601,7 +563,7 @@
         }
 
         // Function to add a new reminder
-        async function addReminder() {
+        function addReminder() {
             const dateStr = reminderDateInput.value;
             const timeStr = reminderTimeInput.value;
             const eventText = reminderEventInput.value.trim();
@@ -634,12 +596,9 @@
                 showCustomModal("單次提醒時間必須晚於現在！");
                 return;
             }
-            // For repeating reminders, if the initial time is in the past,
-            // we'll calculate the next future occurrence immediately upon addition (handled below).
-            // No need to block addition here.
-
 
             const newReminder = {
+                id: Date.now().toString(), // 在離線模式下使用時間戳作為唯一 ID
                 event: eventText,
                 date: dateStr,
                 time: timeStr,
@@ -665,21 +624,20 @@
                 }
             }
 
+            // 直接將新提醒加入陣列
+            reminders.push(newReminder);
+            reminders.sort((a, b) => a.timestamp - b.timestamp); // 重新排序
 
-            try {
-                const docRef = await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/reminders`), newReminder);
-                console.log("Reminder added with ID: ", docRef.id, newReminder);
+            saveRemindersToLocalStorage(); // 儲存到 localStorage
+            renderReminders(); // 重新渲染列表
+            scheduleReminder(newReminder); // 排程新提醒
 
-                // Clear input fields and reset selects
-                setInitialDateTime(); // Reset date/time to current
-                reminderEventInput.value = '';
-                repeatSelect.value = 'once';
-                importanceSelect.value = 'medium';
-                toggleCustomRepeatDays(); // Hide custom days again
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                showCustomModal("新增提醒失敗，請檢查網路連線或稍後再試。");
-            }
+            // Clear input fields and reset selects
+            setInitialDateTime(); // Reset date/time to current
+            reminderEventInput.value = '';
+            repeatSelect.value = 'once';
+            importanceSelect.value = 'medium';
+            toggleCustomRepeatDays(); // Hide custom days again
         }
 
         // Function to render the list of reminders
@@ -760,7 +718,7 @@
 
 
         // Function to schedule a single reminder
-        async function scheduleReminder(reminder) {
+        function scheduleReminder(reminder) {
             // Clear existing timeout for this reminder if it was rescheduled or updated
             if (scheduledTimeouts.has(reminder.id)) {
                 clearTimeout(scheduledTimeouts.get(reminder.id));
@@ -773,53 +731,62 @@
             // Handle reminders that are already past or current
             if (delay <= 0) {
                 if (reminder.repeatType !== 'once') {
-                    // For repeating reminders: find the next future occurrence
+                    // 對於重複提醒：找到下一個未來的發生時間
                     const nextOcc = calculateNextOccurrence(reminder);
                     if (nextOcc) {
                         console.log(`Repeating reminder "${reminder.event}" is past/current. Rescheduling to:`, nextOcc.newDateStr, nextOcc.newTimeStr);
-                        await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id), {
-                            timestamp: nextOcc.newTimestamp,
-                            date: nextOcc.newDateStr,
-                            time: nextOcc.newTimeStr
-                        });
-                        return; // Update will trigger onSnapshot, which will call scheduleReminder again.
+                        // 更新陣列中的提醒事項
+                        const index = reminders.findIndex(r => r.id === reminder.id);
+                        if (index !== -1) {
+                            reminders[index].timestamp = nextOcc.newTimestamp;
+                            reminders[index].date = nextOcc.newDateStr;
+                            reminders[index].time = nextOcc.newTimeStr;
+                            saveRemindersToLocalStorage(); // 儲存更新
+                            renderReminders(); // 重新渲染列表
+                            scheduleReminder(reminders[index]); // 重新排程更新後的提醒
+                        }
+                        return;
                     } else {
                         console.log(`Repeating reminder "${reminder.event}" has no future occurrences or is misconfigured. Deleting.`);
-                        await deleteReminder(reminder.id);
+                        deleteReminder(reminder.id); // 無法找到下一個發生時間，則刪除
                         return;
                     }
                 } else {
-                    // For one-time reminders: if past, delete it.
+                    // 對於單次提醒：如果已過期，則刪除
                     console.log(`One-time reminder "${reminder.event}" is past. Deleting.`);
-                    await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id));
+                    deleteReminder(reminder.id);
                     return;
                 }
             }
 
-            // Schedule the reminder if it's still in the future
+            // 如果提醒仍在未來，則排程
             if (delay > 0) {
-                const timeoutId = setTimeout(async () => {
+                const timeoutId = setTimeout(() => {
                     showNotification(reminder);
-                    playBeepSound(); // Play sound when notification appears
+                    playBeepSound(); // 提醒彈出時播放音效
 
                     if (reminder.repeatType !== 'once') {
-                        // For repeating reminders: after firing, calculate and update to the next occurrence
+                        // 對於重複提醒：觸發後，計算並更新到下一個發生時間
                         const nextOcc = calculateNextOccurrence(reminder);
                         if (nextOcc) {
                             console.log(`Reminder "${reminder.event}" fired. Scheduling next occurrence:`, nextOcc.newDateStr, nextOcc.newTimeStr);
-                            await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id), {
-                                timestamp: nextOcc.newTimestamp,
-                                date: nextOcc.newDateStr,
-                                time: nextOcc.newTimeStr
-                            });
+                            const index = reminders.findIndex(r => r.id === reminder.id);
+                            if (index !== -1) {
+                                reminders[index].timestamp = nextOcc.newTimestamp;
+                                reminders[index].date = nextOcc.newDateStr;
+                                reminders[index].time = nextOcc.newTimeStr;
+                                saveRemindersToLocalStorage(); // 儲存更新
+                                renderReminders(); // 重新渲染列表
+                                scheduleReminder(reminders[index]); // 重新排程更新後的提醒
+                            }
                         } else {
                             console.log(`Repeating reminder "${reminder.event}" has no further occurrences. Deleting.`);
-                            await deleteReminder(reminder.id);
+                            deleteReminder(reminder.id); // 如果沒有下一個發生時間，則刪除
                         }
                     } else {
-                        // For 'once' reminders: delete after notification
+                        // 對於單次提醒：通知後刪除
                         console.log(`One-time reminder "${reminder.event}" fired. Deleting.`);
-                        await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id));
+                        deleteReminder(reminder.id);
                     }
                 }, delay);
                 scheduledTimeouts.set(reminder.id, timeoutId);
@@ -854,23 +821,18 @@
         }
 
         // Function to delete a reminder
-        async function deleteReminder(id) {
-            try {
-                // Clear the scheduled timeout if it exists
-                if (scheduledTimeouts.has(id)) {
-                    clearTimeout(scheduledTimeouts.get(id));
-                    scheduledTimeouts.delete(id);
-                }
-
-                // Delete from Firestore
-                await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, id));
-                console.log("Reminder successfully deleted!");
-
-                // onSnapshot listener will automatically re-render
-            } catch (e) {
-                console.error("Error removing document: ", e);
-                showCustomModal("刪除提醒失敗，請檢查網路連線或稍後再試。");
+        function deleteReminder(id) {
+            // Clear the scheduled timeout if it exists
+            if (scheduledTimeouts.has(id)) {
+                clearTimeout(scheduledTimeouts.get(id));
+                scheduledTimeouts.delete(id);
             }
+
+            // 從陣列中移除提醒事項
+            reminders = reminders.filter(reminder => reminder.id !== id);
+            saveRemindersToLocalStorage(); // 儲存更新
+            renderReminders(); // 重新渲染列表
+            console.log("Reminder successfully deleted!");
         }
 
         // Event listeners
@@ -889,11 +851,11 @@
             }
         });
 
-        // Initialize Firebase and set initial date/time when the window loads
+        // Initialize on window load
         window.onload = () => {
             setInitialDateTime(); // Set date and time when the page loads
             toggleCustomRepeatDays(); // Set initial visibility for custom repeat days
-            initializeFirebase();
+            loadRemindersFromLocalStorage(); // 載入本地儲存的提醒事項
         };
     </script>
 </body>
