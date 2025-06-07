@@ -41,27 +41,33 @@
         }
         input[type="date"],
         input[type="time"],
-        input[type="text"],
-        button {
+        input[type="text"] {
             padding: 12px 18px;
             border-radius: 8px; /* Rounded corners for inputs/buttons */
             border: 1px solid #E0D4C1; /* 暖色調邊框：淺米色/棕褐色 */
             font-size: 16px;
             color: #4A4A4A; /* 暖色調深灰文字 */
+            background-color: #FFFFFF; /* 輸入框背景 */
             transition: all 0.2s ease-in-out;
         }
-        input:focus,
-        button:focus {
+        input::placeholder { /* 針對 placeholder 文字 */
+            color: #8A8A8A; /* 淺色模式下可見的灰色 */
+            opacity: 1;
+        }
+        input:focus {
             outline: none;
             border-color: #D97940; /* 暖色調焦點環：焦橙色 */
             box-shadow: 0 0 0 3px rgba(217, 121, 64, 0.25);
         }
         button {
+            padding: 12px 18px;
+            border-radius: 8px; /* Rounded corners for buttons */
             cursor: pointer;
             background-color: #D97940; /* 暖色調按鈕：焦橙色 */
             color: white;
             font-weight: 600;
             border: none;
+            transition: all 0.2s ease-in-out;
         }
         button:hover {
             background-color: #C06A3A; /* 滑鼠懸停時更深的焦橙色 */
@@ -145,6 +151,7 @@
             background-color: #D97940; /* 提醒按鈕與主要按鈕顏色相同 */
             padding: 12px 25px;
             font-size: 1em;
+            color: white; /* 確保按鈕文字可見 */
         }
         .user-id-display {
             font-size: 0.8em;
@@ -155,6 +162,22 @@
             background-color: #F5EFE3; /* 用戶 ID 背景使用淺米色 */
             border-radius: 8px;
             word-break: break-all; /* Allow breaking long user IDs */
+        }
+        /* 針對頁面主要標題和子標題 */
+        .text-gray-800 {
+            color: #1f2937; /* 恢復深灰，確保在淺色背景可見 */
+        }
+        /* 針對輸入框標籤 */
+        .text-gray-700 {
+            color: #374151; /* 恢復中灰，確保在淺色背景可見 */
+        }
+        /* 針對「目前沒有提醒事項」的提示 */
+        .text-gray-500 {
+            color: #6b7280; /* 恢復淺灰，確保在淺色背景可見 */
+        }
+        /* 針對自定義模態框的注意標題 */
+        .text-orange-600 {
+            color: #D97940; /* 亮橘色 */
         }
     </style>
 </head>
@@ -194,7 +217,7 @@
     <!-- Notification Modal -->
     <div id="notificationModal" class="notification-modal hidden">
         <div class="notification-content">
-            <h2 class="text-indigo-600">提醒!</h2>
+            <h2 class="text-orange-600">提醒!</h2>
             <p id="notificationMessage">這是一個提醒。</p>
             <button id="closeNotificationBtn">我知道了</button>
         </div>
@@ -225,6 +248,22 @@
         const notificationMessage = document.getElementById('notificationMessage');
         const closeNotificationBtn = document.getElementById('closeNotificationBtn');
         const currentUserIdSpan = document.getElementById('currentUserId');
+
+        // Function to set the current date and time in the input fields
+        function setInitialDateTime() {
+            const now = new Date();
+
+            // Format date to YYYY-MM-DD
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+            const day = now.getDate().toString().padStart(2, '0');
+            reminderDateInput.value = `${year}-${month}-${day}`;
+
+            // Format time to HH:MM
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            reminderTimeInput.value = `${hours}:${minutes}`;
+        }
 
         // Initialize Firebase and set up authentication
         async function initializeFirebase() {
@@ -328,10 +367,10 @@
                 const docRef = await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/reminders`), newReminder);
                 console.log("Reminder added with ID: ", docRef.id);
 
-                // Clear input fields
-                reminderDateInput.value = '';
-                reminderTimeInput.value = '';
-                reminderEventInput.value = '';
+                // Clear input fields (optional: keep current time for quick adding if desired)
+                // reminderDateInput.value = ''; // You might want to keep date if adding multiple for same day
+                // reminderTimeInput.value = ''; // You might want to keep time if adding multiple for same time
+                reminderEventInput.value = ''; // Always clear event field
             } catch (e) {
                 console.error("Error adding document: ", e);
                 // 使用自定義模態框代替 alert
@@ -447,8 +486,11 @@
             }
         });
 
-        // Initialize Firebase when the window loads
-        window.onload = initializeFirebase;
+        // Initialize Firebase and set initial date/time when the window loads
+        window.onload = () => {
+            setInitialDateTime(); // Set date and time when the page loads
+            initializeFirebase();
+        };
     </script>
 </body>
 </html>
