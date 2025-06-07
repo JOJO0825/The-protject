@@ -91,12 +91,6 @@
             transform: translateY(-2px); /* 稍微抬起的效果 */
             box-shadow: 0 6px 12px rgba(255, 140, 0, 0.3); /* 更大的陰影 */
         }
-        button:disabled { /* 禁用按鈕樣式 */
-            background-color: #cccccc;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
         .reminder-item {
             background-color: #FFFFFF; /* 提醒事項背景：白色 */
             border: 1px solid #E5E5E5; /* 淺灰色邊框 */
@@ -368,7 +362,7 @@
                 </select>
             </div>
 
-            <button id="addReminderBtn" class="w-full" disabled>新增提醒</button>
+            <button id="addReminderBtn" class="w-full">新增提醒</button>
         </div>
 
         <div class="reminders-list-section mt-6">
@@ -399,51 +393,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration - 請將你的 Firebase 專案設定貼到這裡
-        // ==========================================================================================================
-        // 重要提示：
-        //   1. 請登入你的 Firebase 控制台 (Firebase Console): https://console.firebase.google.com/
-        //   2. 選擇你的專案。
-        //   3. 點擊左側導航欄中的 "Project settings" (齒輪圖標)。
-        //   4. 在 "General" (一般) 選項卡下，向下捲動到 "Your apps" (你的應用程式) 部分。
-        //   5. 如果你還沒有 Web 應用程式，請點擊 "Add app" (+) 並選擇 "Web" 註冊一個新應用程式。
-        //   6. 複製彈出視窗中 `const firebaseConfig = { ... };` 這個物件的**所有內容**。
-        //   7. 將複製的內容，完整地貼到下方 `firebaseConfig` 物件的花括號 `{}` 內。
-        //
-        // 範例 (請替換為你自己的實際資訊):
-        // const firebaseConfig = {
-        //   apiKey: "AIzaSyD-Your-API-Key",
-        //   authDomain: "your-project-id.firebaseapp.com",
-        //   projectId: "your-project-id",
-        //   storageBucket: "your-project-id.appspot.com",
-        //   messagingSenderId: "1234567890",
-        //   appId: "1:1234567890:web:abcdef1234567890abcdef"
-        // };
-        // ==========================================================================================================
-        const firebaseConfig = {// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyC3UOA5P7Fl6FMBaUMpn00AcAG_o_LRfIY",
-  authDomain: "the-protject.firebaseapp.com",
-  projectId: "the-protject",
-  storageBucket: "the-protject.firebasestorage.app",
-  messagingSenderId: "623378750946",
-  appId: "1:623378750946:web:4f759e84a280267bdd2dbb",
-  measurementId: "G-C1MQSWFHVS"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-        };
-
-
         // Global variables for Firebase and user
         let app;
         let db;
@@ -451,7 +400,6 @@ const analytics = getAnalytics(app);
         let userId;
         let reminders = []; // Array to store reminder objects
         const scheduledTimeouts = new Map(); // Map to store timeout IDs for clearing
-        let isFirebaseReady = false; // 新增旗標，追蹤 Firebase 是否已準備就緒
 
         // DOM element references
         const reminderDateInput = document.getElementById('reminderDate');
@@ -473,7 +421,7 @@ const analytics = getAnalytics(app);
         function setInitialDateTime() {
             const now = new Date();
 
-            // Format date toപ്പെടെ-MM-DD
+            // Format date to YYYY-MM-DD
             const year = now.getFullYear();
             const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
             const day = now.getDate().toString().padStart(2, '0');
@@ -499,23 +447,12 @@ const analytics = getAnalytics(app);
         // Initialize Firebase and set up authentication
         async function initializeFirebase() {
             try {
-                // Determine the correct Firebase config to use.
-                // In Canvas, __firebase_config is provided. Outside Canvas (e.g., GitHub Pages), use the hardcoded firebaseConfig.
-                const configToUse = typeof __firebase_config !== 'undefined' && Object.keys(JSON.parse(__firebase_config)).length > 0
-                                   ? JSON.parse(__firebase_config)
-                                   : firebaseConfig;
-
-                // Validate if configToUse is empty, which means user hasn't provided their firebaseConfig yet.
-                if (!configToUse || Object.keys(configToUse).length === 0 || !configToUse.projectId) {
-                    throw new Error("Firebase configuration is missing or incomplete. Please add your Firebase project config to the code.");
-                }
-
-                // Determine the appId. Use __app_id if available, otherwise fallback to projectId from the config.
-                // This `currentAppId` will be consistent for all Firestore paths.
-                const currentAppId = typeof __app_id !== 'undefined' ? __app_id : configToUse.projectId;
+                // Get app ID and Firebase config from global variables
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
 
                 // Initialize Firebase app
-                app = initializeApp(configToUse);
+                app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
@@ -532,36 +469,29 @@ const analytics = getAnalytics(app);
                         userId = user.uid;
                         currentUserIdSpan.textContent = userId;
                         console.log("Firebase initialized. User ID:", userId);
-                        setupFirestoreListener(currentAppId); // Pass appId to listener
-                        isFirebaseReady = true; // Firebase 準備就緒
-                        addReminderBtn.disabled = false; // 啟用新增按鈕
+                        setupFirestoreListener(); // Start listening for reminders once authenticated
                     } else {
                         // If user is signed out, create a random ID. This should ideally not happen if signInAnonymously succeeds.
                         userId = crypto.randomUUID();
                         currentUserIdSpan.textContent = `匿名用戶 (${userId})`;
                         console.log("Firebase initialized. Anonymous User ID:", userId);
-                        setupFirestoreListener(currentAppId); // Still try to load data, though it might be empty
-                        isFirebaseReady = true; // Firebase 準備就緒
-                        addReminderBtn.disabled = false; // 啟用新增按鈕
+                        setupFirestoreListener(); // Still try to load data, though it might be empty
                     }
                 });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
-                currentUserIdSpan.textContent = `載入失敗: ${error.message || '請檢查您的 Firebase 設定和網路連線。'}`;
-                addReminderBtn.disabled = true; // 保持禁用按鈕
-                showCustomModal(`應用程式初始化失敗！\n\n錯誤：${error.message || '未知錯誤。請確保您的 Firebase 設定正確無誤。'}\n\n請按照說明在程式碼中貼上您的 Firebase 專案配置。`);
+                // Display an error message to the user if Firebase initialization fails
+                currentUserIdSpan.textContent = `載入失敗 (${error.message})`;
             }
         }
 
         // Set up real-time listener for reminders from Firestore
-        // Pass appId to this function so it's consistent with initialization
-        function setupFirestoreListener(appId) {
+        function setupFirestoreListener() {
             if (!userId) {
                 console.warn("User ID not available yet for Firestore listener.");
                 return;
             }
-            // Use the passed appId to construct the collection path
-            const remindersCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/reminders`);
+            const remindersCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/reminders`);
             // Use onSnapshot to listen for real-time updates
             onSnapshot(remindersCollectionRef, (snapshot) => {
                 const newReminders = [];
@@ -579,7 +509,6 @@ const analytics = getAnalytics(app);
                 reminders.forEach(scheduleReminder); // Reschedule all reminders
             }, (error) => {
                 console.error("Error fetching reminders:", error);
-                showCustomModal(`無法載入提醒事項！\n\n錯誤：${error.message || '未知錯誤。'}\n\n請檢查您的 Firebase 權限設定。`);
             });
         }
 
@@ -608,7 +537,6 @@ const analytics = getAnalytics(app);
 
             for (let i = 0; i < maxSearchDays; i++) {
                 // If it's not the first iteration, advance by one day.
-                // This ensures we always check the current candidateDate *before* advancing for the next iteration.
                 if (i > 0) {
                      candidateDate.setDate(candidateDate.getDate() + 1);
                 }
@@ -627,17 +555,19 @@ const analytics = getAnalytics(app);
                         isValidDayForRepeatType = (dayOfWeek === 0 || dayOfWeek === 6); // Sunday or Saturday
                         break;
                     case 'custom':
-                        isValidDayForRepeatType = reminder.customRepeatDays && reminder.customRepeatDays.length > 0 && reminder.customRepeatDays.includes(dayOfWeek);
+                        isValidDayForRepeatType = reminder.customRepeatDays.includes(dayOfWeek);
                         break;
                     case 'once':
                         // This function is primarily for repeating reminders.
                         // For 'once', if its original timestamp is already past 'now', there's no 'next' occurrence.
                         // If it's still in the future, its own timestamp is the 'next' occurrence.
                         // So we only return it if it's strictly in the future relative to the point this function is called.
-                        // This case should ideally not be hit for 'once' reminders that need rescheduling,
-                        // as they are simply deleted after firing.
-                        // However, if we get here during an 'add' operation for a past 'once' reminder, it means an invalid state.
-                        return null;
+                        if (reminder.timestamp > now.getTime()) { // Re-check original timestamp here
+                            isValidDayForRepeatType = true;
+                        } else {
+                            return null; // One-time reminder is past, no next occurrence.
+                        }
+                        break;
                     default:
                         // Should not happen for valid repeat types
                         return null;
@@ -672,12 +602,6 @@ const analytics = getAnalytics(app);
 
         // Function to add a new reminder
         async function addReminder() {
-            // 在執行 Firebase 操作前，檢查是否已準備就緒
-            if (!isFirebaseReady || !db || !userId) {
-                showCustomModal("應用程式正在載入，請稍後再試。");
-                return;
-            }
-
             const dateStr = reminderDateInput.value;
             const timeStr = reminderTimeInput.value;
             const eventText = reminderEventInput.value.trim();
@@ -710,6 +634,10 @@ const analytics = getAnalytics(app);
                 showCustomModal("單次提醒時間必須晚於現在！");
                 return;
             }
+            // For repeating reminders, if the initial time is in the past,
+            // we'll calculate the next future occurrence immediately upon addition (handled below).
+            // No need to block addition here.
+
 
             const newReminder = {
                 event: eventText,
@@ -732,9 +660,6 @@ const analytics = getAnalytics(app);
                     newReminder.time = nextOcc.newTimeStr;
                     console.log("Repeating reminder adjusted to next occurrence during add:", nextOcc);
                 } else {
-                    // This scenario means a repeating reminder set in the past cannot find *any* future valid occurrence
-                    // within the search limit (e.g., all custom days are in the past for 2 years).
-                    // This is likely a misconfiguration or a very long-term past reminder.
                     showCustomModal("無法為重複提醒找到未來的時間，請檢查設定！");
                     return;
                 }
@@ -742,13 +667,7 @@ const analytics = getAnalytics(app);
 
 
             try {
-                // 從已初始化的 app 物件中獲取 projectId 作為 appId，這更可靠
-                const effectiveAppId = app.options.projectId;
-                if (!effectiveAppId) {
-                    throw new Error("Application ID is not available for Firestore operations. Firebase may not be initialized correctly.");
-                }
-
-                const docRef = await addDoc(collection(db, `artifacts/${effectiveAppId}/users/${userId}/reminders`), newReminder);
+                const docRef = await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/reminders`), newReminder);
                 console.log("Reminder added with ID: ", docRef.id, newReminder);
 
                 // Clear input fields and reset selects
@@ -858,13 +777,7 @@ const analytics = getAnalytics(app);
                     const nextOcc = calculateNextOccurrence(reminder);
                     if (nextOcc) {
                         console.log(`Repeating reminder "${reminder.event}" is past/current. Rescheduling to:`, nextOcc.newDateStr, nextOcc.newTimeStr);
-                        // Determine the correct appId for Firestore collection path during update.
-                        const effectiveAppId = app.options.projectId;
-                        if (!effectiveAppId) {
-                            console.error("Application ID is not available for Firestore update operation.");
-                            return;
-                        }
-                        await updateDoc(doc(db, `artifacts/${effectiveAppId}/users/${userId}/reminders`, reminder.id), {
+                        await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id), {
                             timestamp: nextOcc.newTimestamp,
                             date: nextOcc.newDateStr,
                             time: nextOcc.newTimeStr
@@ -878,7 +791,7 @@ const analytics = getAnalytics(app);
                 } else {
                     // For one-time reminders: if past, delete it.
                     console.log(`One-time reminder "${reminder.event}" is past. Deleting.`);
-                    await deleteDoc(doc(db, `artifacts/${app.options.projectId}/users/${userId}/reminders`, reminder.id)); // Use app.options.projectId
+                    await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id));
                     return;
                 }
             }
@@ -894,13 +807,7 @@ const analytics = getAnalytics(app);
                         const nextOcc = calculateNextOccurrence(reminder);
                         if (nextOcc) {
                             console.log(`Reminder "${reminder.event}" fired. Scheduling next occurrence:`, nextOcc.newDateStr, nextOcc.newTimeStr);
-                            // Determine the correct appId for Firestore collection path during update.
-                            const effectiveAppId = app.options.projectId;
-                            if (!effectiveAppId) {
-                                console.error("Application ID is not available for Firestore update operation after fire.");
-                                return;
-                            }
-                            await updateDoc(doc(db, `artifacts/${effectiveAppId}/users/${userId}/reminders`, reminder.id), {
+                            await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id), {
                                 timestamp: nextOcc.newTimestamp,
                                 date: nextOcc.newDateStr,
                                 time: nextOcc.newTimeStr
@@ -912,7 +819,7 @@ const analytics = getAnalytics(app);
                     } else {
                         // For 'once' reminders: delete after notification
                         console.log(`One-time reminder "${reminder.event}" fired. Deleting.`);
-                        await deleteDoc(doc(db, `artifacts/${app.options.projectId}/users/${userId}/reminders`, reminder.id)); // Use app.options.projectId
+                        await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id));
                     }
                 }, delay);
                 scheduledTimeouts.set(reminder.id, timeoutId);
@@ -955,15 +862,8 @@ const analytics = getAnalytics(app);
                     scheduledTimeouts.delete(id);
                 }
 
-                // Determine the correct appId for Firestore collection path during delete.
-                const effectiveAppId = app.options.projectId;
-                if (!effectiveAppId) {
-                    console.error("Application ID is not available for Firestore delete operation.");
-                    return;
-                }
-
                 // Delete from Firestore
-                await deleteDoc(doc(db, `artifacts/${effectiveAppId}/users/${userId}/reminders`, id));
+                await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, id));
                 console.log("Reminder successfully deleted!");
 
                 // onSnapshot listener will automatically re-render
