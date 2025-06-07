@@ -32,77 +32,207 @@
             max-width: 600px;
             width: 100%;
             background-color: #FFFFFF; /* 容器背景：白色，可與暖色調協調 */
-            border-radius: 12px; /* Rounded corners */
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 16px; /* 更圓潤的邊角 */
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15); /* 稍微更明顯的陰影 */
             padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 25px;
         }
+        .input-group {
+            position: relative; /* 用於圖標定位 */
+        }
         input[type="date"],
         input[type="time"],
-        input[type="text"] {
+        input[type="text"],
+        select { /* 選擇框也應用樣式 */
             padding: 12px 18px;
+            padding-right: 40px; /* 為圖標預留空間 */
             border-radius: 8px; /* Rounded corners for inputs/buttons */
-            border: 1px solid #E0D4C1; /* 暖色調邊框：淺米色/棕褐色 */
+            border: 1px solid #D1CFCF; /* 柔和的淺灰色邊框 */
             font-size: 16px;
-            color: #4A4A4A; /* 暖色調深灰文字 */
-            background-color: #FFFFFF; /* 輸入框背景 */
+            color: #333333; /* 深灰文字 */
+            background-color: #F8F8F8; /* 淺灰背景 */
             transition: all 0.2s ease-in-out;
+            box-sizing: border-box; /* 確保 padding 不增加寬度 */
+        }
+        .input-group .icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7A7A7A; /* 圖標顏色 */
+            pointer-events: none; /* 讓點擊能穿透到輸入框 */
         }
         input::placeholder { /* 針對 placeholder 文字 */
-            color: #8A8A8A; /* 淺色模式下可見的灰色 */
+            color: #A0A0A0; /* 淺色模式下可見的灰色 */
             opacity: 1;
         }
-        input:focus {
+        input:focus,
+        select:focus { /* 選擇框也應用焦點樣式 */
             outline: none;
-            border-color: #D97940; /* 暖色調焦點環：焦橙色 */
-            box-shadow: 0 0 0 3px rgba(217, 121, 64, 0.25);
+            border-color: #FF8C00; /* 亮橙色焦點環 */
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.25);
+            background-color: #FFFFFF; /* 焦點時背景為白色 */
         }
         button {
             padding: 12px 18px;
             border-radius: 8px; /* Rounded corners for buttons */
             cursor: pointer;
-            background-color: #D97940; /* 暖色調按鈕：焦橙色 */
+            background-color: #FF8C00; /* 亮橙色按鈕 */
             color: white;
             font-weight: 600;
             border: none;
             transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(255, 140, 0, 0.2); /* 按鈕陰影 */
         }
         button:hover {
-            background-color: #C06A3A; /* 滑鼠懸停時更深的焦橙色 */
-            transform: translateY(-1px); /* Slight lift effect */
+            background-color: #E07B00; /* 滑鼠懸停時更深的橙色 */
+            transform: translateY(-2px); /* 稍微抬起的效果 */
+            box-shadow: 0 6px 12px rgba(255, 140, 0, 0.3); /* 更大的陰影 */
         }
         .reminder-item {
-            background-color: #FFFCF9; /* 提醒事項背景：米白色 */
-            border: 1px solid #E0D4C1; /* 與輸入框邊框相同 */
-            padding: 15px;
-            border-radius: 8px;
+            background-color: #FFFFFF; /* 提醒事項背景：白色 */
+            border: 1px solid #E5E5E5; /* 淺灰色邊框 */
+            padding: 18px; /* 增加內邊距 */
+            border-radius: 12px; /* 更圓潤的邊角 */
+            display: flex;
+            flex-direction: column; /* 允許內容垂直排列 */
+            gap: 10px; /* 增加行間距 */
+            position: relative; /* 用於定位重要性標籤 */
+            word-break: break-word; /* Ensure long text wraps */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* 項目陰影 */
+        }
+        .reminder-item .header-row {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start; /* 讓重要性標籤在右上角 */
+            width: 100%;
+            gap: 10px;
+        }
+        .reminder-item .event-text {
+            color: #333333; /* 深灰文字 */
+            font-size: 1.2em; /* 讓事件文字稍微大一點 */
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        .reminder-item .details-row {
+            display: flex;
+            flex-wrap: wrap; /* 內容過多時換行 */
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            word-break: break-word; /* Ensure long text wraps */
+            width: 100%;
+            margin-top: 5px; /* 與事件文字間距 */
         }
-        .reminder-item strong {
-            color: #4A4A4A; /* 暖色調深灰文字 */
-        }
-        .reminder-item span {
-            color: #7A7A7A; /* 暖色調中灰文字 */
-            font-size: 0.9em;
+        .reminder-item .datetime-text {
+            color: #666666; /* 中灰文字 */
+            font-size: 0.95em;
+            flex-grow: 1; /* 佔據多數空間 */
         }
         .delete-btn {
-            background-color: #ef4444; /* 紅色刪除按鈕，保持警示性 */
+            background-color: #E74C3C; /* 更鮮豔的紅 */
             color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.85em;
+            padding: 8px 14px; /* 增加內邊距 */
+            border-radius: 8px; /* 更圓潤 */
+            font-size: 0.8em;
             transition: all 0.2s ease-in-out;
+            align-self: flex-end; /* 將刪除按鈕置於右下角 */
+            margin-top: 5px; /* 與上方內容間距 */
+            box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
         }
         .delete-btn:hover {
-            background-color: #dc2626;
-            transform: scale(1.05);
+            background-color: #C0392B; /* 更深的紅 */
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(231, 76, 60, 0.3);
         }
+
+        /* Importance styling */
+        .importance-tag {
+            font-size: 0.7em; /* 稍微小一點 */
+            font-weight: 700; /* 更粗的字體 */
+            padding: 4px 10px;
+            border-radius: 10px; /* 膠囊狀 */
+            color: white;
+            white-space: nowrap; /* 不換行 */
+            min-width: 40px; /* 最小寬度 */
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .importance-low {
+            background-color: #28a745; /* Bootstrap green */
+        }
+        .importance-medium {
+            background-color: #ffc107; /* Bootstrap yellow */
+            color: #333333; /* 深色文字 */
+        }
+        .importance-high {
+            background-color: #dc3545; /* Bootstrap red */
+        }
+        .repeat-text {
+            font-size: 0.85em;
+            color: #7A7A7A;
+            margin-left: 10px; /* 增加與其他文字的間距 */
+        }
+
+        /* Repeat options styling */
+        .repeat-options {
+            display: flex;
+            flex-wrap: wrap; /* 換行 */
+            gap: 15px; /* 增加間距 */
+            margin-top: 10px;
+        }
+        .repeat-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* 增加間距 */
+            font-size: 0.9em;
+            color: #4A4A4A;
+            cursor: pointer;
+        }
+        .repeat-options input[type="checkbox"] {
+            width: 20px; /* 調整大小 */
+            height: 20px;
+            border: 2px solid #D1CFCF; /* 邊框更粗 */
+            border-radius: 6px; /* 更圓潤 */
+            appearance: none; /* 隱藏原生樣式 */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            position: relative;
+            background-color: #FFFFFF;
+            transition: all 0.2s ease-in-out;
+            flex-shrink: 0; /* 防止縮小 */
+        }
+        .repeat-options input[type="checkbox"]:checked {
+            background-color: #D97940; /* 選中時的背景色 */
+            border-color: #D97940;
+        }
+        .repeat-options input[type="checkbox"]:checked::after {
+            content: '✔'; /* 選中時的勾號 */
+            font-size: 14px;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .repeat-options input[type="checkbox"]:hover {
+            border-color: #D97940; /* 懸停時改變邊框顏色 */
+        }
+        .custom-repeat-days {
+            margin-top: 15px; /* 增加與上方間距 */
+            padding-top: 15px;
+            border-top: 1px dashed #E0D4C1; /* 分隔線 */
+            display: none; /* 預設隱藏 */
+            flex-wrap: wrap;
+            gap: 15px; /* 增加間距 */
+        }
+        .custom-repeat-days.active {
+            display: flex; /* 顯示時使用 flex */
+        }
+
+
+        /* Notification Modal */
         .notification-modal {
             position: fixed;
             top: 0;
@@ -186,18 +316,52 @@
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">我的提醒事項</h1>
 
         <div class="input-section flex flex-col gap-4">
-            <div>
+            <div class="input-group">
                 <label for="reminderDate" class="block text-sm font-medium text-gray-700 mb-1">日期:</label>
                 <input type="date" id="reminderDate" class="w-full">
+                <span class="icon">📅</span>
             </div>
-            <div>
+            <div class="input-group">
                 <label for="reminderTime" class="block text-sm font-medium text-gray-700 mb-1">時間:</label>
                 <input type="time" id="reminderTime" class="w-full">
+                <span class="icon">⏰</span>
             </div>
-            <div>
+            <div class="input-group">
                 <label for="reminderEvent" class="block text-sm font-medium text-gray-700 mb-1">事件:</label>
                 <input type="text" id="reminderEvent" placeholder="輸入提醒事件..." class="w-full">
+                <span class="icon">📝</span>
             </div>
+
+            <div>
+                <label for="repeatSelect" class="block text-sm font-medium text-gray-700 mb-1">重複:</label>
+                <select id="repeatSelect" class="w-full">
+                    <option value="once">只提醒一次</option>
+                    <option value="daily">每天</option>
+                    <option value="weekdays">平日 (週一至週五)</option>
+                    <option value="weekends">週末 (週六、週日)</option>
+                    <option value="custom">自訂</option>
+                </select>
+            </div>
+
+            <div id="customRepeatDaysContainer" class="custom-repeat-days">
+                <label><input type="checkbox" name="customDay" value="1"> 週一</label>
+                <label><input type="checkbox" name="customDay" value="2"> 週二</label>
+                <label><input type="checkbox" name="customDay" value="3"> 週三</label>
+                <label><input type="checkbox" name="customDay" value="4"> 週四</label>
+                <label><input type="checkbox" name="customDay" value="5"> 週五</label>
+                <label><input type="checkbox" name="customDay" value="6"> 週六</label>
+                <label><input type="checkbox" name="customDay" value="0"> 週日</label>
+            </div>
+
+            <div>
+                <label for="importanceSelect" class="block text-sm font-medium text-gray-700 mb-1">重要程度:</label>
+                <select id="importanceSelect" class="w-full">
+                    <option value="low">低</option>
+                    <option value="medium" selected>中</option>
+                    <option value="high">高</option>
+                </select>
+            </div>
+
             <button id="addReminderBtn" class="w-full">新增提醒</button>
         </div>
 
@@ -241,6 +405,10 @@
         const reminderDateInput = document.getElementById('reminderDate');
         const reminderTimeInput = document.getElementById('reminderTime');
         const reminderEventInput = document.getElementById('reminderEvent');
+        const repeatSelect = document.getElementById('repeatSelect');
+        const customRepeatDaysContainer = document.getElementById('customRepeatDaysContainer');
+        const customDayCheckboxes = document.querySelectorAll('input[name="customDay"]');
+        const importanceSelect = document.getElementById('importanceSelect');
         const addReminderBtn = document.getElementById('addReminderBtn');
         const remindersList = document.getElementById('remindersList');
         const noRemindersMessage = document.getElementById('noRemindersMessage');
@@ -263,6 +431,17 @@
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
             reminderTimeInput.value = `${hours}:${minutes}`;
+        }
+
+        // Function to toggle custom repeat days visibility
+        function toggleCustomRepeatDays() {
+            if (repeatSelect.value === 'custom') {
+                customRepeatDaysContainer.classList.add('active');
+            } else {
+                customRepeatDaysContainer.classList.remove('active');
+                // Uncheck all custom day checkboxes when not in custom mode
+                customDayCheckboxes.forEach(checkbox => checkbox.checked = false);
+            }
         }
 
         // Initialize Firebase and set up authentication
@@ -324,7 +503,8 @@
                 scheduledTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
                 scheduledTimeouts.clear();
 
-                reminders = newReminders.sort((a, b) => a.timestamp - b.timestamp); // Sort by timestamp
+                // Sort reminders by timestamp
+                reminders = newReminders.sort((a, b) => a.timestamp - b.timestamp);
                 renderReminders();
                 reminders.forEach(scheduleReminder); // Reschedule all reminders
             }, (error) => {
@@ -332,48 +512,172 @@
             });
         }
 
+        /**
+         * Calculates the next *future* occurrence of a reminder (especially for repeating ones).
+         * This function ensures the returned timestamp is always in the future relative to the current time.
+         * @param {object} reminder - The reminder object with original timestamp, repeatType, etc.
+         * @returns {object|null} An object with `newTimestamp`, `newDateStr`, `newTimeStr` or null if no future occurrence can be found.
+         */
+        function calculateNextOccurrence(reminder) {
+            const originalHour = new Date(reminder.timestamp).getHours();
+            const originalMinute = new Date(reminder.timestamp).getMinutes();
+            const now = new Date();
+
+            let candidateDate = new Date(); // Start checking from current date
+            candidateDate.setHours(originalHour, originalMinute, 0, 0); // Set time to reminder's original time
+
+            // If today's reminder time (original hour:minute) is already past/current, advance to tomorrow.
+            // This ensures we always start looking for a future date.
+            if (candidateDate.getTime() <= now.getTime()) {
+                candidateDate.setDate(candidateDate.getDate() + 1);
+            }
+
+            let foundNext = false;
+            const maxSearchDays = 366 * 2; // Search up to 2 years to ensure we find a valid day for repeats
+
+            for (let i = 0; i < maxSearchDays; i++) {
+                // If it's not the first iteration, advance by one day.
+                if (i > 0) {
+                     candidateDate.setDate(candidateDate.getDate() + 1);
+                }
+
+                const dayOfWeek = candidateDate.getDay(); // 0 for Sunday, 6 for Saturday
+
+                let isValidDayForRepeatType = false;
+                switch (reminder.repeatType) {
+                    case 'daily':
+                        isValidDayForRepeatType = true;
+                        break;
+                    case 'weekdays':
+                        isValidDayForRepeatType = (dayOfWeek >= 1 && dayOfWeek <= 5); // Monday to Friday
+                        break;
+                    case 'weekends':
+                        isValidDayForRepeatType = (dayOfWeek === 0 || dayOfWeek === 6); // Sunday or Saturday
+                        break;
+                    case 'custom':
+                        isValidDayForRepeatType = reminder.customRepeatDays.includes(dayOfWeek);
+                        break;
+                    case 'once':
+                        // This function is primarily for repeating reminders.
+                        // For 'once', if its original timestamp is already past 'now', there's no 'next' occurrence.
+                        // If it's still in the future, its own timestamp is the 'next' occurrence.
+                        // So we only return it if it's strictly in the future relative to the point this function is called.
+                        if (reminder.timestamp > now.getTime()) { // Re-check original timestamp here
+                            isValidDayForRepeatType = true;
+                        } else {
+                            return null; // One-time reminder is past, no next occurrence.
+                        }
+                        break;
+                    default:
+                        // Should not happen for valid repeat types
+                        return null;
+                }
+
+                // After setting the candidateDate to the appropriate day, and if it's a valid day type,
+                // check if its specific time (original hour:minute) is in the future.
+                if (isValidDayForRepeatType && candidateDate.getTime() > now.getTime()) {
+                    foundNext = true;
+                    break;
+                }
+            }
+
+            if (!foundNext) {
+                console.warn("Could not find a future occurrence for repeating reminder after many iterations:", reminder);
+                return null;
+            }
+
+            // Format the new date and time
+            const newYear = candidateDate.getFullYear();
+            const newMonth = (candidateDate.getMonth() + 1).toString().padStart(2, '0');
+            const newDay = candidateDate.getDate().toString().padStart(2, '0');
+            const newHours = candidateDate.getHours().toString().padStart(2, '0');
+            const newMinutes = candidateDate.getMinutes().toString().padStart(2, '0');
+
+            return {
+                newTimestamp: candidateDate.getTime(),
+                newDateStr: `${newYear}-${newMonth}-${newDay}`,
+                newTimeStr: `${newHours}:${newMinutes}`
+            };
+        }
+
         // Function to add a new reminder
         async function addReminder() {
             const dateStr = reminderDateInput.value;
             const timeStr = reminderTimeInput.value;
             const eventText = reminderEventInput.value.trim();
+            const repeatType = repeatSelect.value;
+            const importance = importanceSelect.value;
+            let customRepeatDays = [];
+
+            if (repeatType === 'custom') {
+                customDayCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        customRepeatDays.push(parseInt(checkbox.value, 10));
+                    }
+                });
+                if (customRepeatDays.length === 0) {
+                    showCustomModal("請為自訂重複提醒選擇至少一天！");
+                    return;
+                }
+            }
 
             if (!dateStr || !timeStr || !eventText) {
-                // 使用自定義模態框代替 alert
                 showCustomModal("請填寫日期、時間和事件內容！");
                 return;
             }
 
-            // Combine date and time to create a Date object
             const reminderDateTime = new Date(`${dateStr}T${timeStr}`);
             const now = new Date();
 
-            if (reminderDateTime.getTime() <= now.getTime()) {
-                // 使用自定義模態框代替 alert
-                showCustomModal("提醒時間必須晚於現在！");
+            // Initial validation for 'once' reminders: cannot be in the past.
+            if (repeatType === 'once' && reminderDateTime.getTime() <= now.getTime()) {
+                showCustomModal("單次提醒時間必須晚於現在！");
                 return;
             }
+            // For repeating reminders, if the initial time is in the past,
+            // we'll calculate the next future occurrence immediately upon addition (handled below).
+            // No need to block addition here.
+
 
             const newReminder = {
                 event: eventText,
                 date: dateStr,
                 time: timeStr,
-                timestamp: reminderDateTime.getTime(), // Store timestamp for easy sorting and scheduling
-                createdAt: Date.now() // For potential future sorting or debugging
+                timestamp: reminderDateTime.getTime(), // Initial timestamp from user input
+                repeatType: repeatType,
+                customRepeatDays: customRepeatDays,
+                importance: importance,
+                createdAt: Date.now()
             };
 
-            try {
-                // Add the reminder to Firestore
-                const docRef = await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/reminders`), newReminder);
-                console.log("Reminder added with ID: ", docRef.id);
+            // If it's a repeating reminder AND its initial timestamp is in the past,
+            // calculate its first actual future occurrence and update the object before saving.
+            if (newReminder.repeatType !== 'once' && newReminder.timestamp <= now.getTime()) {
+                const nextOcc = calculateNextOccurrence(newReminder); // This call will find the next future occurrence
+                if (nextOcc) {
+                    newReminder.timestamp = nextOcc.newTimestamp;
+                    newReminder.date = nextOcc.newDateStr;
+                    newReminder.time = nextOcc.newTimeStr;
+                    console.log("Repeating reminder adjusted to next occurrence during add:", nextOcc);
+                } else {
+                    showCustomModal("無法為重複提醒找到未來的時間，請檢查設定！");
+                    return;
+                }
+            }
 
-                // Clear input fields (optional: keep current time for quick adding if desired)
-                // reminderDateInput.value = ''; // You might want to keep date if adding multiple for same day
-                // reminderTimeInput.value = ''; // You might want to keep time if adding multiple for same time
-                reminderEventInput.value = ''; // Always clear event field
+
+            try {
+                const docRef = await addDoc(collection(db, `artifacts/${__app_id}/users/${userId}/reminders`), newReminder);
+                console.log("Reminder added with ID: ", docRef.id, newReminder);
+
+                // Clear input fields and reset selects
+                setInitialDateTime(); // Reset date/time to current
+                reminderEventInput.value = '';
+                repeatSelect.value = 'once';
+                importanceSelect.value = 'medium';
+                toggleCustomRepeatDays(); // Hide custom days again
             } catch (e) {
                 console.error("Error adding document: ", e);
-                // 使用自定義模態框代替 alert
                 showCustomModal("新增提醒失敗，請檢查網路連線或稍後再試。");
             }
         }
@@ -388,34 +692,137 @@
                 reminders.forEach(reminder => {
                     const reminderItem = document.createElement('div');
                     reminderItem.className = 'reminder-item';
+
+                    // Add importance class
+                    if (reminder.importance) {
+                        reminderItem.classList.add(`importance-${reminder.importance}`);
+                    }
+
+                    // Determine repeat text
+                    let repeatText = '';
+                    switch (reminder.repeatType) {
+                        case 'once': repeatText = '一次'; break;
+                        case 'daily': repeatText = '每天重複'; break;
+                        case 'weekdays': repeatText = '平日重複'; break;
+                        case 'weekends': repeatText = '週末重複'; break;
+                        case 'custom':
+                            if (reminder.customRepeatDays && reminder.customRepeatDays.length > 0) {
+                                const dayNames = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+                                const selectedDays = reminder.customRepeatDays.map(day => dayNames[day]).join('、');
+                                repeatText = `自訂重複: ${selectedDays}`;
+                            } else {
+                                repeatText = '自訂重複 (未設定)';
+                            }
+                            break;
+                    }
+
+
                     reminderItem.innerHTML = `
-                        <div>
-                            <strong>${reminder.event}</strong><br>
-                            <span>${reminder.date} ${reminder.time}</span>
+                        <div class="header-row">
+                            <span class="event-text flex-grow">${reminder.event}</span>
+                            <span class="importance-tag importance-${reminder.importance}">${reminder.importance === 'low' ? '低' : (reminder.importance === 'medium' ? '中' : '高')}</span>
                         </div>
-                        <button class="delete-btn" data-id="${reminder.id}">刪除</button>
+                        <div class="details-row">
+                            <span class="datetime-text">${reminder.date} ${reminder.time}</span>
+                            <span class="repeat-text">重複: ${repeatText}</span>
+                            <button class="delete-btn" data-id="${reminder.id}">刪除</button>
+                        </div>
                     `;
                     remindersList.appendChild(reminderItem);
                 });
             }
         }
 
-        // Function to schedule a single reminder
-        function scheduleReminder(reminder) {
-            const now = Date.now();
-            const delay = reminder.timestamp - now;
+        // Function to play a simple beep sound using Web Audio API
+        function playBeepSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
 
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = 'sine'; // Sine wave for a clean beep
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 note (440 Hz)
+
+                gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+                // Exponential ramp to 0.001 (near silent) over 0.5 seconds
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5); // Play for 0.5 seconds
+            } catch (e) {
+                console.error("Error playing beep sound:", e);
+                // Optionally show a visual alert if sound fails, but console error is usually enough
+            }
+        }
+
+
+        // Function to schedule a single reminder
+        async function scheduleReminder(reminder) {
+            // Clear existing timeout for this reminder if it was rescheduled or updated
+            if (scheduledTimeouts.has(reminder.id)) {
+                clearTimeout(scheduledTimeouts.get(reminder.id));
+                scheduledTimeouts.delete(reminder.id);
+            }
+
+            const now = Date.now();
+            let delay = reminder.timestamp - now;
+
+            // Handle reminders that are already past or current
+            if (delay <= 0) {
+                if (reminder.repeatType !== 'once') {
+                    // For repeating reminders: find the next future occurrence
+                    const nextOcc = calculateNextOccurrence(reminder);
+                    if (nextOcc) {
+                        console.log(`Repeating reminder "${reminder.event}" is past/current. Rescheduling to:`, nextOcc.newDateStr, nextOcc.newTimeStr);
+                        await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id), {
+                            timestamp: nextOcc.newTimestamp,
+                            date: nextOcc.newDateStr,
+                            time: nextOcc.newTimeStr
+                        });
+                        return; // Update will trigger onSnapshot, which will call scheduleReminder again.
+                    } else {
+                        console.log(`Repeating reminder "${reminder.event}" has no future occurrences or is misconfigured. Deleting.`);
+                        await deleteReminder(reminder.id);
+                        return;
+                    }
+                } else {
+                    // For one-time reminders: if past, delete it.
+                    console.log(`One-time reminder "${reminder.event}" is past. Deleting.`);
+                    await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id));
+                    return;
+                }
+            }
+
+            // Schedule the reminder if it's still in the future
             if (delay > 0) {
-                const timeoutId = setTimeout(() => {
+                const timeoutId = setTimeout(async () => {
                     showNotification(reminder);
-                    // Optionally, delete the reminder after it pops up
-                    // deleteReminder(reminder.id);
+                    playBeepSound(); // Play sound when notification appears
+
+                    if (reminder.repeatType !== 'once') {
+                        // For repeating reminders: after firing, calculate and update to the next occurrence
+                        const nextOcc = calculateNextOccurrence(reminder);
+                        if (nextOcc) {
+                            console.log(`Reminder "${reminder.event}" fired. Scheduling next occurrence:`, nextOcc.newDateStr, nextOcc.newTimeStr);
+                            await updateDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id), {
+                                timestamp: nextOcc.newTimestamp,
+                                date: nextOcc.newDateStr,
+                                time: nextOcc.newTimeStr
+                            });
+                        } else {
+                            console.log(`Repeating reminder "${reminder.event}" has no further occurrences. Deleting.`);
+                            await deleteReminder(reminder.id);
+                        }
+                    } else {
+                        // For 'once' reminders: delete after notification
+                        console.log(`One-time reminder "${reminder.event}" fired. Deleting.`);
+                        await deleteDoc(doc(db, `artifacts/${__app_id}/users/${userId}/reminders`, reminder.id));
+                    }
                 }, delay);
                 scheduledTimeouts.set(reminder.id, timeoutId);
-            } else {
-                // If reminder is already past, remove it from list or mark as complete
-                console.log(`Reminder for "${reminder.event}" is already past. Consider removing.`);
-                // For this app, we'll keep it in the list until manually deleted.
             }
         }
 
@@ -424,10 +831,6 @@
             notificationMessage.textContent = `「${reminder.event}」於 ${reminder.date} ${reminder.time} 到期了！`;
             notificationModal.classList.remove('hidden');
             notificationModal.classList.add('active');
-
-            // Play a sound (optional)
-            const audio = new Audio('https://www.soundjay.com/buttons/beep-07.mp3'); // Example sound, use with caution for production
-            audio.play().catch(e => console.error("Error playing sound:", e));
         }
 
         // Function to show a custom modal for alert messages (replaces native alert)
@@ -466,13 +869,13 @@
                 // onSnapshot listener will automatically re-render
             } catch (e) {
                 console.error("Error removing document: ", e);
-                // 使用自定義模態框代替 alert
                 showCustomModal("刪除提醒失敗，請檢查網路連線或稍後再試。");
             }
         }
 
         // Event listeners
         addReminderBtn.addEventListener('click', addReminder);
+        repeatSelect.addEventListener('change', toggleCustomRepeatDays);
         closeNotificationBtn.addEventListener('click', () => {
             notificationModal.classList.add('hidden');
             notificationModal.classList.remove('active');
@@ -489,6 +892,7 @@
         // Initialize Firebase and set initial date/time when the window loads
         window.onload = () => {
             setInitialDateTime(); // Set date and time when the page loads
+            toggleCustomRepeatDays(); // Set initial visibility for custom repeat days
             initializeFirebase();
         };
     </script>
